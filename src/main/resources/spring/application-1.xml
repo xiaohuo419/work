@@ -1,0 +1,66 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd
+	http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+	
+	<!--1.开启包扫描 包扫描作用域:当前包以及所有的子孙包都要扫描.*代表1级路径**代表任意包路径  -->
+	<context:component-scan base-package="com.jt" />
+	<!--2.配置数据源  -->
+	<!--2.1spring 容器添加properties配置文件  -->
+	<context:property-placeholder location="classpath:/properties/*.properties"/>
+	<!--2.2管理数据源  -->
+	<bean id="dataSource"
+			class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="driverClassName" value="${jdbc.driver}"/>
+		<property name="url" value="${jdbc.url}"/>
+		<property name="username" value="${jdbc.username}"/>
+		<property name="password" value="${jdbc.password}"/>
+	</bean>
+	<!--3.开启事务标签  -->
+	<tx:annotation-driven/>
+	<!--4.Spring整合mybatis
+		如果Id省略不写,则默认以类名首字母小写定义.
+		
+		关于spring容器为对象的属性赋值
+			方式一:Set注入  调用对象中的set方法为属性赋值
+			方式二:构造注入 调用对象的构造方法为属性赋值
+				     编辑构造方法时,切记添加无参构造.
+				     核心理念:反射调用.
+	  -->
+	  <bean class="org.mybatis.spring.SqlSessionFactoryBean">
+	  		<!--mybatis导入数据源  -->
+	  		<property name="dataSource" ref="dataSource"/>
+	  		<property name="configLocation" 
+	  				value="classpath:/mybatis/mybatis-config.xml"/>
+	  		<property name="mapperLocations" 
+	  				value="classpath:/mybatis/mappers/*.xml"/>
+	  		<!--添加别名配置  -->
+	  		<property name="typeAliasesPackage" value="com.jt.pojo"/>
+	  </bean>
+	<!-- 4.配置mapper接口代理 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jt.mapper"/>
+	</bean>
+	
+	
+	<!--配置mvc 1.开启mvc注解标签2.配置视图解析器3.放行静态资源  -->
+	<!--1.开启mvc注解标签  -->
+	<mvc:annotation-driven/>
+	<!--2.内部资源视图解析器  -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/"/>
+		<property name="suffix" value=".jsp"/>
+	</bean>
+	<!-- 3.放行静态资源 -->
+	<mvc:default-servlet-handler/>
+</beans>
